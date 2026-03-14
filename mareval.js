@@ -1,6 +1,10 @@
 (function () {
   'use strict';
 
+  function getAssetPath(path) {
+    return encodeURI(path);
+  }
+
   /* ─────────────────────────────────────────
      INTRO: porthole + sea canvas + zoom-in
   ───────────────────────────────────────── */
@@ -316,6 +320,37 @@
       var modelBaseSize = null;
       var modelBaseCenter = null;
 
+      function createShipFallback() {
+        var fallback = new THREE.Group();
+        var hull = new THREE.Mesh(
+          new THREE.BoxGeometry(2.9, 0.35, 0.9),
+          new THREE.MeshStandardMaterial({ color: 0x0f2747, metalness: 0.35, roughness: 0.55 })
+        );
+        var deck = new THREE.Mesh(
+          new THREE.BoxGeometry(1.5, 0.28, 0.55),
+          new THREE.MeshStandardMaterial({ color: 0xd7e0ea, metalness: 0.15, roughness: 0.8 })
+        );
+        var funnel = new THREE.Mesh(
+          new THREE.BoxGeometry(0.22, 0.38, 0.22),
+          new THREE.MeshStandardMaterial({ color: 0x5da7d1, metalness: 0.1, roughness: 0.85 })
+        );
+
+        hull.position.y = -0.05;
+        deck.position.set(0.15, 0.28, 0);
+        funnel.position.set(0.5, 0.55, 0);
+
+        fallback.add(hull);
+        fallback.add(deck);
+        fallback.add(funnel);
+        fallback.rotation.y = -0.35;
+
+        shipModel = fallback;
+        modelBaseSize = new THREE.Vector3(2.9, 1.0, 0.9);
+        modelBaseCenter = new THREE.Vector3(0.1, 0.2, 0);
+        fitModelToCanvas();
+        shipRoot.add(fallback);
+      }
+
       function fitModelToCanvas() {
         if (!shipModel || !modelBaseSize || !modelBaseCenter) return;
 
@@ -336,7 +371,7 @@
 
       var loader = new THREE.GLTFLoader();
       loader.load(
-        'images/viking_line_ms_viking_grace_2013.glb',
+        getAssetPath('images/viking_line_ms_viking_grace_2013.glb'),
         function (gltf) {
           shipModel = gltf.scene;
 
@@ -353,6 +388,7 @@
         undefined,
         function (err) {
           console.error('GLB load error:', err);
+          createShipFallback();
         }
       );
       
@@ -424,6 +460,29 @@
       var modelBaseSize = null;
       var modelBaseCenter = null;
 
+      function createEarthFallback() {
+        if (earthModel) return;
+
+        var geometry = new THREE.SphereGeometry(1.35, 48, 48);
+        var material = new THREE.MeshStandardMaterial({
+          color: 0x2b5f8f,
+          emissive: 0x09243f,
+          metalness: 0.08,
+          roughness: 0.82
+        });
+        var sphere = new THREE.Mesh(geometry, material);
+
+        var glow = new THREE.Mesh(
+          new THREE.SphereGeometry(1.48, 32, 32),
+          new THREE.MeshBasicMaterial({ color: 0x58c2d6, transparent: true, opacity: 0.08 })
+        );
+
+        earthModel = new THREE.Group();
+        earthModel.add(sphere);
+        earthModel.add(glow);
+        earthRoot.add(earthModel);
+      }
+
       function fitEarthModel() {
         if (!earthModel || !modelBaseSize || !modelBaseCenter) return;
 
@@ -444,7 +503,7 @@
 
       var loader = new THREE.GLTFLoader();
       loader.load(
-        'images/earth.glb',
+        getAssetPath('images/earth.glb'),
         function (gltf) {
           earthModel = gltf.scene;
 
@@ -466,6 +525,7 @@
         undefined,
         function (err) {
           console.error('Earth GLB load error:', err);
+          createEarthFallback();
         }
       );
 
