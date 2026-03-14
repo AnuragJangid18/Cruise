@@ -13,6 +13,16 @@
 </head>
 <body class="locked">
 
+<!-- ═══════════ AMBIENT OCEAN SOUND ═══════════ -->
+<audio id="bgm-ocean" loop style="display:none;">
+  <source src="images/ocean-waves.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ═══════════ SOUND CONTROL BUTTON ═══════════ -->
+<button id="audio-toggle" style="position:fixed;bottom:40px;left:40px;z-index:1000;width:25px;height:25px;border-radius:50%;background:#2dc4c4;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0b1120;transition:all .3s;box-shadow:0 2px 8px rgba(45,196,196,.3);">
+  🔊
+</button>
+
 <!-- ═══════════ INTRO ═══════════ -->
 <div id="intro">
   <div id="ph-wrap">
@@ -274,6 +284,58 @@
     <a href="#">Careers</a>
   </div>
 </footer>
+
+<script>
+// Ocean wave ambient sound control
+const oceanAudio = document.getElementById('bgm-ocean');
+const audioToggle = document.getElementById('audio-toggle');
+let isPlaying = false;
+
+if (oceanAudio && audioToggle) {
+  // Set volume
+  oceanAudio.volume = 0.4;
+  
+  // Button click handler
+  audioToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isPlaying) {
+      oceanAudio.pause();
+      audioToggle.textContent = '🔊';
+      audioToggle.style.opacity = '0.6';
+      isPlaying = false;
+    } else {
+      oceanAudio.play().catch(err => console.log('Play error:', err));
+      audioToggle.textContent = '🔇';
+      audioToggle.style.opacity = '1';
+      isPlaying = true;
+    }
+  });
+  
+  // Button hover effect
+  audioToggle.addEventListener('mouseover', () => {
+    audioToggle.style.transform = 'scale(1.1)';
+  });
+  
+  audioToggle.addEventListener('mouseout', () => {
+    audioToggle.style.transform = 'scale(1)';
+  });
+  
+  // Auto-start on user's first interaction with page
+  const startAudio = () => {
+    if (!isPlaying) {
+      oceanAudio.play().catch(err => console.log('Autoplay prevented:', err));
+      audioToggle.textContent = '🔇';
+      audioToggle.style.opacity = '1';
+      isPlaying = true;
+    }
+    document.removeEventListener('click', startAudio);
+    document.removeEventListener('scroll', startAudio);
+  };
+  
+  document.addEventListener('click', startAudio);
+  document.addEventListener('scroll', startAudio);
+}
+</script>
 
 <script src="mareval.js"></script>
 </body>
