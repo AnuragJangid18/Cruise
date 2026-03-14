@@ -300,12 +300,12 @@ if (oceanAudio && audioToggle) {
     e.stopPropagation();
     if (isPlaying) {
       oceanAudio.pause();
-      audioToggle.textContent = '🔊';
+      audioToggle.textContent = '🔇';
       audioToggle.style.opacity = '0.6';
       isPlaying = false;
     } else {
       oceanAudio.play().catch(err => console.log('Play error:', err));
-      audioToggle.textContent = '🔇';
+      audioToggle.textContent = '🔊';
       audioToggle.style.opacity = '1';
       isPlaying = true;
     }
