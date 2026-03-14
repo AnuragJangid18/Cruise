@@ -169,6 +169,18 @@ nav.scrolled {
 }
 .hero-ship { position:absolute;right:5%;bottom:18%;width:520px;height:0px;opacity:.9;
   animation:float-ship 9s ease-in-out infinite;border-radius:8px; }
+.model-status {
+  position:absolute;z-index:3;max-width:320px;padding:10px 14px;
+  border:1px solid rgba(45,196,196,.18);background:rgba(6,13,26,.82);
+  backdrop-filter:blur(10px);font-family:var(--fm);font-size:.58rem;letter-spacing:.14em;
+  text-transform:uppercase;line-height:1.7;color:var(--cream);
+  box-shadow:0 18px 40px rgba(0,0,0,.2);transition:opacity .25s ease,transform .25s ease,border-color .25s ease;
+}
+.model-status.is-loading { border-color:rgba(45,196,196,.25); color:rgba(240,236,227,.82); }
+.model-status.is-ready { border-color:rgba(45,196,196,.38); color:rgba(45,196,196,.95); }
+.model-status.is-warning { border-color:rgba(201,169,110,.45); color:rgba(201,169,110,.96); }
+.model-status.is-hidden { opacity:0; transform:translateY(8px); pointer-events:none; }
+.model-status-hero { right:6%; bottom:14%; }
 @keyframes float-ship {
   0%,100%{ transform:translateY(0) rotate(.3deg); }
   50%    { transform:translateY(-18px) rotate(-.3deg); }
@@ -314,6 +326,7 @@ section { position:relative;z-index:1; }
 .route-item:hover .route-arrow { transform:translateX(6px);color:var(--aqua); }
 .world-vis { position:relative;height:480px;display:flex;align-items:center;justify-content:center; }
 .world-canvas { width:100%;height:100%;display:block;opacity:.95; }
+.model-status-earth { left:24px; bottom:24px; }
 .port-ticker { margin-top:80px;overflow:hidden;
   border-top:1px solid rgba(45,196,196,.1);border-bottom:1px solid rgba(45,196,196,.1);
   padding:16px 0; }
@@ -375,6 +388,7 @@ footer { padding:40px 60px;background:var(--deep);
   .nav-links { display:none; }
   #hero { padding:100px 32px 180px; }
   .hero-ship { display:none; }
+  .model-status-hero { display:none; }
   .hero-stats { flex-wrap:wrap; }
   .stat-item { padding:18px 24px; }
   #about { grid-template-columns:1fr;padding:80px 32px;gap:60px; }
@@ -387,6 +401,7 @@ footer { padding:40px 60px;background:var(--deep);
   #routes { padding:80px 32px; }
   .routes-inner { grid-template-columns:1fr; }
   .world-vis { display:none; }
+  .model-status-earth { display:none; }
   #contact { grid-template-columns:1fr;padding:80px 32px;gap:60px; }
   .fr { grid-template-columns:1fr; }
   footer { flex-direction:column;gap:20px;padding:32px; }

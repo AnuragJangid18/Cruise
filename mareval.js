@@ -5,6 +5,37 @@
     return encodeURI(path);
   }
 
+  function setModelStatus(elementId, state, message, shouldHide) {
+    var statusEl = document.getElementById(elementId);
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.classList.remove('is-loading', 'is-ready', 'is-warning', 'is-hidden');
+    statusEl.classList.add(state);
+
+    if (shouldHide) {
+      setTimeout(function () {
+        statusEl.classList.add('is-hidden');
+      }, 1600);
+    }
+  }
+
+  function formatModelError(assetPath, err) {
+    if (window.location.protocol === 'file:') {
+      return 'Model blocked by file:// access. Use a local or deployed HTTP server.';
+    }
+
+    if (err && err.target && typeof err.target.status === 'number' && err.target.status > 0) {
+      return 'Model request failed for ' + assetPath + ' with HTTP ' + err.target.status + '.';
+    }
+
+    if (err && err.message) {
+      return err.message;
+    }
+
+    return 'Model could not load. Check path, host headers, or file size.';
+  }
+
   /* ─────────────────────────────────────────
      INTRO: porthole + sea canvas + zoom-in
   ───────────────────────────────────────── */
@@ -283,6 +314,8 @@
   (function initShip3D() {
     var canvas = document.getElementById('hero-ship-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
+
+    setModelStatus('hero-ship-status', 'is-loading', '3D ship model loading...', false);
     
     try {
       var scene = new THREE.Scene();
@@ -384,11 +417,13 @@
           fitModelToCanvas();
 
           shipRoot.add(shipModel);
+          setModelStatus('hero-ship-status', 'is-ready', '3D ship model loaded.', true);
         },
         undefined,
         function (err) {
           console.error('GLB load error:', err);
           createShipFallback();
+          setModelStatus('hero-ship-status', 'is-warning', formatModelError('images/viking_line_ms_viking_grace_2013.glb', err) + ' Using fallback geometry.', false);
         }
       );
       
@@ -426,6 +461,8 @@
   (function initRoutesEarth3D() {
     var canvas = document.getElementById('routes-earth-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
+
+    setModelStatus('earth-model-status', 'is-loading', '3D earth model loading...', false);
 
     /* defer until canvas has real dimensions */
     function getSize() {
@@ -521,11 +558,13 @@
 
           fitEarthModel();
           earthRoot.add(earthModel);
+          setModelStatus('earth-model-status', 'is-ready', '3D earth model loaded.', true);
         },
         undefined,
         function (err) {
           console.error('Earth GLB load error:', err);
           createEarthFallback();
+          setModelStatus('earth-model-status', 'is-warning', formatModelError('images/earth.glb', err) + ' Using fallback sphere.', false);
         }
       );
 
