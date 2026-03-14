@@ -1,6 +1,11 @@
 (function () {
   'use strict';
 
+  // Mobile detection
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+    || window.innerWidth < 768 
+    || (window.matchMedia('(pointer:coarse)').matches);
+
   /* ─────────────────────────────────────────
      INTRO: porthole + sea canvas + zoom-in
   ───────────────────────────────────────── */
@@ -11,6 +16,9 @@
   var boltsEl   = document.getElementById('ph-bolts');
   var canvas    = document.getElementById('sea');
   var ctx       = canvas.getContext('2d');
+  
+  // Reduce animation timing on mobile
+  var animDelay = isMobile ? 400 : 800;
 
   /* position wrap fixed & centred */
   phWrap.style.position = 'fixed';
@@ -78,14 +86,16 @@
     ctx.fillStyle = skyG;
     ctx.fillRect(0, 0, cW, skyH);
 
-    /* sun glow */
-    var sunX = cW * 0.55, sunY = skyH * 0.82;
-    var sunG = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, cW * 0.55);
-    sunG.addColorStop(0,   'rgba(220,180,80,.22)');
-    sunG.addColorStop(0.3, 'rgba(180,130,40,.10)');
-    sunG.addColorStop(1,   'transparent');
-    ctx.fillStyle = sunG;
-    ctx.fillRect(0, 0, cW, skyH);
+    /* sun glow - simplified on mobile */
+    if (!isMobile) {
+      var sunX = cW * 0.55, sunY = skyH * 0.82;
+      var sunG = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, cW * 0.55);
+      sunG.addColorStop(0,   'rgba(220,180,80,.22)');
+      sunG.addColorStop(0.3, 'rgba(180,130,40,.10)');
+      sunG.addColorStop(1,   'transparent');
+      ctx.fillStyle = sunG;
+      ctx.fillRect(0, 0, cW, skyH);
+    }
 
     /* horizon */
     ctx.strokeStyle = 'rgba(180,200,220,.18)';
@@ -100,23 +110,28 @@
     ctx.fillStyle = seaG;
     ctx.fillRect(0, skyH, cW, cH - skyH);
 
-    /* sun reflection */
-    var refG = ctx.createLinearGradient(0, skyH, 0, cH);
-    refG.addColorStop(0, 'rgba(200,170,60,.14)');
-    refG.addColorStop(1, 'rgba(200,170,60,0)');
-    ctx.save();
-    ctx.fillStyle = refG;
-    ctx.beginPath();
-    ctx.moveTo(sunX - cW*.06, skyH); ctx.lineTo(sunX + cW*.06, skyH);
-    ctx.lineTo(sunX + cW*.18, cH);   ctx.lineTo(sunX - cW*.18, cH);
-    ctx.closePath(); ctx.fill(); ctx.restore();
+    /* sun reflection - skip on mobile */
+    if (!isMobile) {
+      var sunX = cW * 0.55, sunY = skyH * 0.82;
+      var refG = ctx.createLinearGradient(0, skyH, 0, cH);
+      refG.addColorStop(0, 'rgba(200,170,60,.14)');
+      refG.addColorStop(1, 'rgba(200,170,60,0)');
+      ctx.save();
+      ctx.fillStyle = refG;
+      ctx.beginPath();
+      ctx.moveTo(sunX - cW*.06, skyH); ctx.lineTo(sunX + cW*.06, skyH);
+      ctx.lineTo(sunX + cW*.18, cH);   ctx.lineTo(sunX - cW*.18, cH);
+      ctx.closePath(); ctx.fill(); ctx.restore();
+    }
 
-    /* waves */
-    for (var wi = 0; wi < waves.length; wi++) {
+    /* waves - reduced on mobile */
+    var waveCount = isMobile ? 2 : waves.length;
+    for (var wi = 0; wi < waveCount; wi++) {
       var lyr = waves[wi];
       var baseY = skyH + (cH - skyH) * (0.08 + wi * 0.13);
       ctx.beginPath(); ctx.moveTo(0, cH); ctx.lineTo(0, baseY);
-      for (var x = 0; x <= cW; x += 2) {
+      var step = isMobile ? 4 : 2;
+      for (var x = 0; x <= cW; x += step) {
         var nx = x / cW;
         var y = baseY
           + Math.sin(nx * Math.PI * 2 * lyr.f + seaT * lyr.s + lyr.off) * cH * lyr.a
@@ -128,44 +143,49 @@
       ctx.fill();
     }
 
-    /* sparkles — note: local var named sparkA, never "phase" */
-    for (var ki = 0; ki < sparks.length; ki++) {
-      var sp = sparks[ki];
-      sp.life = (sp.life + sp.spd) % 1;
-      var sparkA = sp.life < 0.5 ? sp.life * 2 : 2 - sp.life * 2;
-      sp.x = (sp.x + sp.drift + 1) % 1;
-      var px = sp.x * cW;
-      var py = skyH + (cH - skyH) * sp.yRel
-               + Math.sin(sp.x * Math.PI * 4 + seaT * 0.6) * cH * 0.018;
-      ctx.save();
-      ctx.globalAlpha = sparkA * 0.55;
-      ctx.fillStyle = 'rgba(200,235,245,1)';
-      ctx.beginPath(); ctx.arc(px, py, sp.sz, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
+    /* sparkles - skip on mobile */
+    if (!isMobile) {
+      for (var ki = 0; ki < sparks.length; ki++) {
+        var sp = sparks[ki];
+        sp.life = (sp.life + sp.spd) % 1;
+        var sparkA = sp.life < 0.5 ? sp.life * 2 : 2 - sp.life * 2;
+        sp.x = (sp.x + sp.drift + 1) % 1;
+        var px = sp.x * cW;
+        var py = skyH + (cH - skyH) * sp.yRel
+                 + Math.sin(sp.x * Math.PI * 4 + seaT * 0.6) * cH * 0.018;
+        ctx.save();
+        ctx.globalAlpha = sparkA * 0.55;
+        ctx.fillStyle = 'rgba(200,235,245,1)';
+        ctx.beginPath(); ctx.arc(px, py, sp.sz, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
     }
 
     /* stars */
     ctx.save();
-    for (var st = 0; st < 22; st++) {
+    var starCount = isMobile ? 10 : 22;
+    for (var st = 0; st < starCount; st++) {
       var sx = ((st * 137.508 + 13) % 1) * cW;
       var sy = ((st * 97.3   + 7 ) % 0.38) * skyH;
-      var tw = 0.2 + 0.8 * (0.5 + 0.5 * Math.sin(seaT * (0.8 + st * 0.15) + st));
-      ctx.globalAlpha = tw * 0.7;
+      var tw = isMobile ? 0.5 : (0.2 + 0.8 * (0.5 + 0.5 * Math.sin(seaT * (0.8 + st * 0.15) + st)));
+      ctx.globalAlpha = tw * 0.5;
       ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(sx, sy, 0.7 + (st % 3) * 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(sx, sy, 0.5 + (st % 2) * 0.2, 0, Math.PI * 2); ctx.fill();
     }
     ctx.restore();
 
-    /* caustics */
-    ctx.save(); ctx.globalAlpha = 0.06;
-    for (var ci = 0; ci < 6; ci++) {
-      var cx2 = cW * (0.1 + ci * 0.15 + Math.sin(seaT * 0.4 + ci) * 0.05);
-      var cy2 = skyH + (cH - skyH) * (0.1 + Math.cos(seaT * 0.3 + ci * 0.7) * 0.08);
-      var cg  = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, cW * 0.12);
-      cg.addColorStop(0, 'rgba(100,220,240,1)'); cg.addColorStop(1, 'transparent');
-      ctx.fillStyle = cg; ctx.fillRect(0, skyH, cW, cH);
+    /* caustics - skip on mobile */
+    if (!isMobile) {
+      ctx.save(); ctx.globalAlpha = 0.06;
+      for (var ci = 0; ci < 6; ci++) {
+        var cx2 = cW * (0.1 + ci * 0.15 + Math.sin(seaT * 0.4 + ci) * 0.05);
+        var cy2 = skyH + (cH - skyH) * (0.1 + Math.cos(seaT * 0.3 + ci * 0.7) * 0.08);
+        var cg  = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, cW * 0.12);
+        cg.addColorStop(0, 'rgba(100,220,240,1)'); cg.addColorStop(1, 'transparent');
+        ctx.fillStyle = cg; ctx.fillRect(0, skyH, cW, cH);
+      }
+      ctx.restore();
     }
-    ctx.restore();
 
     seaRaf = requestAnimationFrame(drawSea);
   }
@@ -254,16 +274,18 @@
   /* ─────────────────────────────────────────
      CURSOR
   ───────────────────────────────────────── */
-  var cur  = document.getElementById('cur');
-  var curR = document.getElementById('cur-ring');
-  var mx = 0, my = 0, rx = 0, ry = 0;
-  document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
-  (function animCursor() {
-    cur.style.left  = mx + 'px'; cur.style.top  = my + 'px';
-    rx += (mx - rx) * 0.12;     ry += (my - ry) * 0.12;
-    curR.style.left = rx + 'px'; curR.style.top = ry + 'px';
-    requestAnimationFrame(animCursor);
-  }());
+  if (!isMobile) {
+    var cur  = document.getElementById('cur');
+    var curR = document.getElementById('cur-ring');
+    var mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
+    (function animCursor() {
+      cur.style.left  = mx + 'px'; cur.style.top  = my + 'px';
+      rx += (mx - rx) * 0.12;     ry += (my - ry) * 0.12;
+      curR.style.left = rx + 'px'; curR.style.top = ry + 'px';
+      requestAnimationFrame(animCursor);
+    }());
+  }
 
   /* ─────────────────────────────────────────
      NAVBAR
@@ -277,6 +299,7 @@
      THREE.JS 3D SHIP
   ───────────────────────────────────────── */
   (function initShip3D() {
+    if (isMobile) return; // Skip 3D on mobile
     var canvas = document.getElementById('hero-ship-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
     
@@ -388,6 +411,7 @@
      THREE.JS ROUTES EARTH
   ───────────────────────────────────────── */
   (function initRoutesEarth3D() {
+    if (isMobile) return; // Skip 3D on mobile
     var canvas = document.getElementById('routes-earth-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
 
@@ -498,15 +522,19 @@
      SCROLL REVEALS
   ───────────────────────────────────────── */
   var revEls = document.querySelectorAll('.reveal');
-  var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (en, i) {
-      if (en.isIntersecting) {
-        setTimeout(function () { en.target.classList.add('visible'); }, i * 80);
-        io.unobserve(en.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  revEls.forEach(function (el) { io.observe(el); });
+  if (!isMobile) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en, i) {
+        if (en.isIntersecting) {
+          setTimeout(function () { en.target.classList.add('visible'); }, i * 80);
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    revEls.forEach(function (el) { io.observe(el); });
+  } else {
+    revEls.forEach(function (el) { el.classList.add('visible'); });
+  }
 
   /* ─────────────────────────────────────────
      FLEET FILTER
@@ -620,9 +648,9 @@
     function render() {
       cShipScale += (tShipScale - cShipScale) * 0.10;
       cShipY     += (tShipY     - cShipY)     * 0.10;
-      cShipOp    += (tShipOp    - cShipOp)    * 0.10;
-      cPanelOp   += (tPanelOp   - cPanelOp)   * 0.08;
-      cPanelDx   += (tPanelDx   - cPanelDx)   * 0.08;
+      cShipOp    += (tShipOp    - cShipOp)    * (isMobile ? 0.15 : 0.10);
+      cPanelOp   += (tPanelOp   - cPanelOp)   * (isMobile ? 0.12 : 0.08);
+      cPanelDx   += (tPanelDx   - cPanelDx)   * (isMobile ? 0.12 : 0.08);
 
       var vh = window.innerHeight;
       ship.style.opacity   = cShipOp;
