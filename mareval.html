@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mareval — Cargo &amp; Cruise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="mareval.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body class="locked">
+
+<!-- ═══════════ INTRO ═══════════ -->
+<div id="intro">
+  <div id="ph-wrap">
+    <div id="ph-ring"></div>
+    <div id="ph-bolts"></div>
+    <div id="ph-clip">
+      <canvas id="sea"></canvas>
+      <div id="ph-sheen"></div>
+      <div id="ph-text">
+        <span class="ey">Est. 2018 · Singapore</span>
+        <div class="nm">Mare<em>val</em></div>
+      </div>
+    </div>
+  </div>
+  <div id="scroll-cue">
+    <span>Scroll to enter</span>
+    <div class="sw"><div class="swd"></div></div>
+  </div>
+</div>
+
+<!-- ═══════════ CURSOR ═══════════ -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- ═══════════ NAV ═══════════ -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">Mare<span>val</span></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#fleet">Fleet</a></li>
+    <li><a href="#advantages">Advantages</a></li>
+    <li><a href="#routes">Routes</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Request Charter</a>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-waves">
+    <div class="wave wave-1"></div>
+    <div class="wave wave-2"></div>
+    <div class="wave wave-3"></div>
+  </div>
+  <canvas id="hero-ship-canvas" class="hero-ship"></canvas>
+  <p class="hero-eyebrow">Est. 2018 — Global Maritime Services</p>
+  <h1 class="hero-title">We carry<br/><em>the world</em><span class="gold">in motion.</span></h1>
+  <p class="hero-sub">Mareval operates premium cargo logistics and luxury cruise charters across 174 ports worldwide. Every voyage engineered for reliability, every journey crafted for distinction.</p>
+  <div class="hero-actions">
+    <a href="#fleet" class="btn-p">Explore Fleet</a>
+    <a href="#about" class="btn-g">Our Story</a>
+  </div>
+  <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
+  <div class="hero-stats">
+    <div class="stat-item"><span class="stat-num">174</span><span class="stat-label">Ports Worldwide</span></div>
+    <div class="stat-item"><span class="stat-num">12K+</span><span class="stat-label">Voyages Completed</span></div>
+    <div class="stat-item"><span class="stat-num">98.4%</span><span class="stat-label">On-Time Delivery</span></div>
+    <div class="stat-item"><span class="stat-num">42</span><span class="stat-label">Vessels in Fleet</span></div>
+  </div>
+</section>
+
+<!-- ═══════════ ABOUT ═══════════ -->
+<section id="about">
+  <div class="about-vis reveal">
+    <div class="about-main">
+      <video style="width:100%;height:auto;border-radius:12px;display:block;" controls autoplay muted loop>
+        <source src="images/Ship_sailing_with_water_clouds_delpmaspu_ - Trim.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    </div>
+    <div class="about-card">
+      <span class="big">2018</span><p>Founded in<br/>Singapore</p>
+    </div>
+  </div>
+  <div class="about-text reveal">
+    <div class="sec-label">Who we are</div>
+    <h2 class="sec-title">Built on the<br/><em>open sea</em></h2>
+    <div class="about-line"></div>
+    <p>Mareval was born at the intersection of industrial precision and maritime luxury. We operate dual divisions — a global cargo network that moves goods across six continents, and a curated cruise charter service that transforms ocean travel into an art form.</p>
+    <p>With 42 vessels, 174 port connections, and over 12,000 completed voyages, we carry the weight of commerce and the lightness of leisure with equal mastery.</p>
+    <div class="pillars">
+      <div class="pillar"><h4>Cargo Division</h4><p>Bulk, container, and breakbulk freight with real-time visibility.</p></div>
+      <div class="pillar"><h4>Cruise Charter</h4><p>Bespoke private and corporate voyages on our luxury cruise fleet.</p></div>
+      <div class="pillar"><h4>Port Logistics</h4><p>End-to-end customs clearance, warehousing, and last-mile delivery.</p></div>
+      <div class="pillar"><h4>24/7 Operations</h4><p>Round-the-clock monitoring across all time zones and sea lanes.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FLEET ═══════════ -->
+<section id="fleet">
+  <div class="fleet-hd reveal">
+    <div>
+      <div class="sec-label">Our Fleet</div>
+      <h2 class="sec-title">Vessels built for<br/><em>every mission</em></h2>
+    </div>
+    <div class="fleet-tabs">
+      <button class="tab-btn active" onclick="filterFleet('all',this)">All</button>
+      <button class="tab-btn" onclick="filterFleet('cargo',this)">Cargo</button>
+      <button class="tab-btn" onclick="filterFleet('cruise',this)">Cruise</button>
+    </div>
+  </div>
+  <div class="fleet-cards">
+    <div class="fc reveal" data-type="cargo">
+      <div class="fc-tag">Cargo — Bulk Carrier</div>
+      <div class="fc-name">MV Mareval Titan</div>
+      <div class="fc-sub">Handymax bulk carrier · Open-hold configuration</div>
+      <img class="fc-icon" src="images/titan.png" alt="MV Mareval Titan"/>
+      <div class="fc-specs">
+        <div><span class="spec-val">58,000</span><span class="spec-key">DWT Capacity</span></div>
+        <div><span class="spec-val">14.2</span><span class="spec-key">Knots Speed</span></div>
+        <div><span class="spec-val">5</span><span class="spec-key">Cargo Holds</span></div>
+        <div><span class="spec-val">225 m</span><span class="spec-key">LOA Length</span></div>
+      </div>
+      <a href="#contact" class="fc-link">Charter Vessel</a>
+    </div>
+    <div class="fc reveal" data-type="cruise">
+      <div class="fc-tag">Cruise — Luxury Yacht</div>
+      <div class="fc-name">MY Mareval Étoile</div>
+      <div class="fc-sub">Ultra-luxury expedition yacht · 38 suites</div>
+      <img class="fc-icon" src="images/cruise.png" alt="MY Mareval Étoile"/>
+      <div class="fc-specs">
+        <div><span class="spec-val">76</span><span class="spec-key">Guests</span></div>
+        <div><span class="spec-val">18.5</span><span class="spec-key">Knots Speed</span></div>
+        <div><span class="spec-val">38</span><span class="spec-key">Suites</span></div>
+        <div><span class="spec-val">142 m</span><span class="spec-key">LOA Length</span></div>
+      </div>
+      <a href="#contact" class="fc-link">Book Cruise</a>
+    </div>
+    <div class="fc reveal" data-type="cargo">
+      <div class="fc-tag">Cargo — Container Ship</div>
+      <div class="fc-name">MV Mareval Vega</div>
+      <div class="fc-sub">Feeder container vessel · 1,200 TEU</div>
+      <img class="fc-icon" src="images/vega.png" alt="MV Mareval Vega"/>
+      <div class="fc-specs">
+        <div><span class="spec-val">1,200</span><span class="spec-key">TEU Capacity</span></div>
+        <div><span class="spec-val">16.0</span><span class="spec-key">Knots Speed</span></div>
+        <div><span class="spec-val">reefer</span><span class="spec-key">Cold Chain</span></div>
+        <div><span class="spec-val">168 m</span><span class="spec-key">LOA Length</span></div>
+      </div>
+      <a href="#contact" class="fc-link">Charter Vessel</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ ADVANTAGES ═══════════ -->
+<section id="advantages">
+  <div class="reveal" style="text-align:center;max-width:640px;margin:0 auto">
+    <div class="sec-label">Why Mareval</div>
+    <h2 class="sec-title">A better way to<br/><em>move the world</em></h2>
+  </div>
+  <div class="adv-grid">
+    <div class="adv-item reveal"><div class="adv-num">01</div>
+      <div class="adv-content"><h3>Real-Time Cargo Visibility</h3>
+        <p>Every container, every vessel, every port — tracked live. Our dashboard gives shippers full visibility from origin to discharge, with instant exception alerts and predictive ETA updates.</p></div></div>
+    <div class="adv-item reveal"><div class="adv-num">02</div>
+      <div class="adv-content"><h3>Bespoke Cruise Itineraries</h3>
+        <p>From private Mediterranean loops to Arctic expedition voyages, every cruise charter is designed around your schedule, your guests, and your vision.</p></div></div>
+    <div class="adv-item reveal"><div class="adv-num">03</div>
+      <div class="adv-content"><h3>24/7 Operations Center</h3>
+        <p>Our global operations team works across every time zone. Whether it's a mid-Pacific weather reroute or a last-minute port call change, we adapt without disrupting your timeline.</p></div></div>
+    <div class="adv-item reveal"><div class="adv-num">04</div>
+      <div class="adv-content"><h3>Sustainable Maritime Practice</h3>
+        <p>All Mareval vessels meet IMO Tier III emissions standards. We invest in wind-assist technology, biofuel pilots, and transparent carbon reporting for every voyage.</p></div></div>
+  </div>
+</section>
+
+<!-- ═══════════ ROUTES ═══════════ -->
+<section id="routes">
+  <div class="routes-inner">
+    <div>
+      <div class="sec-label reveal">Global Network</div>
+      <h2 class="sec-title reveal">Sail anywhere.<br/><em>Deliver everywhere.</em></h2>
+      <div class="route-list reveal">
+        <div class="route-item"><span class="route-name">Singapore → Rotterdam</span><span class="route-tag">Cargo · 28 days</span><span class="route-arrow">→</span></div>
+        <div class="route-item"><span class="route-name">Dubai → Mumbai</span><span class="route-tag">Cargo · 5 days</span><span class="route-arrow">→</span></div>
+        <div class="route-item"><span class="route-name">Athens → Santorini Loop</span><span class="route-tag">Cruise · 7 days</span><span class="route-arrow">→</span></div>
+        <div class="route-item"><span class="route-name">Hong Kong → Los Angeles</span><span class="route-tag">Cargo · 18 days</span><span class="route-arrow">→</span></div>
+        <div class="route-item"><span class="route-name">Lisbon → Caribbean Charter</span><span class="route-tag">Cruise · 14 days</span><span class="route-arrow">→</span></div>
+        <div class="route-item"><span class="route-name">Shanghai → Sydney</span><span class="route-tag">Cargo · 12 days</span><span class="route-arrow">→</span></div>
+      </div>
+    </div>
+    <div class="world-vis reveal">
+      <canvas id="routes-earth-canvas" class="world-canvas" aria-label="3D Earth model"></canvas>
+    </div>
+  </div>
+  <div class="port-ticker">
+    <div class="ticker-track">
+      <span class="ticker-item"><span class="ticker-dot"></span>Singapore</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Rotterdam</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Dubai</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Shanghai</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Los Angeles</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Mumbai</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Hamburg</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Hong Kong</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Sydney</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Athens</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Lisbon</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Cape Town</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Tokyo</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Barcelona</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Singapore</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Rotterdam</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Dubai</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Shanghai</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Los Angeles</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Mumbai</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Hamburg</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Hong Kong</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Sydney</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Athens</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Lisbon</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Cape Town</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Tokyo</span>
+      <span class="ticker-item"><span class="ticker-dot"></span>Barcelona</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CONTACT ═══════════ -->
+<section id="contact">
+  <div class="contact-l reveal">
+    <h2>Let's chart<br/><em>your course.</em></h2>
+    <p>Whether you're shipping a thousand containers or planning an intimate private cruise, our team is ready — with precision and elegance.</p>
+    <div class="cd"><span class="lbl">Email</span><a href="#">hello@mareval.com</a></div>
+    <div class="cd"><span class="lbl">Phone</span><a href="#">+65 6123 4567</a></div>
+    <div class="cd"><span class="lbl">HQ</span><span>Marina Bay, Singapore 018980</span></div>
+    <div class="cd"><span class="lbl">Hours</span><span>24/7 Operations Center</span></div>
+  </div>
+  <div class="cf reveal">
+    <div class="fr">
+      <div class="ff"><label>First Name</label><input type="text" placeholder="John"/></div>
+      <div class="ff"><label>Last Name</label><input type="text" placeholder="Smith"/></div>
+    </div>
+    <div class="ff"><label>Email</label><input type="email" placeholder="john@company.com"/></div>
+    <div class="ff"><label>Service Type</label>
+      <select>
+        <option value="" disabled selected>Select a service</option>
+        <option>Bulk Cargo Charter</option>
+        <option>Container Shipping</option>
+        <option>Luxury Cruise Charter</option>
+        <option>Port Logistics</option>
+      </select>
+    </div>
+    <div class="fr">
+      <div class="ff"><label>Origin Port</label><input type="text" placeholder="e.g. Singapore"/></div>
+      <div class="ff"><label>Destination Port</label><input type="text" placeholder="e.g. Rotterdam"/></div>
+    </div>
+    <div class="ff"><label>Message</label><textarea placeholder="Tell us about your voyage requirements…"></textarea></div>
+    <button class="fsub" id="fsub-btn">Send Inquiry →</button>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="fl">Mare<span>val</span></div>
+  <p class="fc2">© 2025 Mareval Maritime. All rights reserved.</p>
+  <div class="flinks">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms</a>
+    <a href="#">Careers</a>
+  </div>
+</footer>
+
+<script src="mareval.js"></script>
+</body>
+</html>
