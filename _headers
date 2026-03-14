@@ -1,5 +1,0 @@
-/images/*.glb
-  Content-Type: model/gltf-binary
-
-/images/*.mp4
-  Content-Type: video/mp4

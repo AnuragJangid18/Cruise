@@ -1,41 +1,6 @@
 (function () {
   'use strict';
 
-  function getAssetPath(path) {
-    return encodeURI(path);
-  }
-
-  function setModelStatus(elementId, state, message, shouldHide) {
-    var statusEl = document.getElementById(elementId);
-    if (!statusEl) return;
-
-    statusEl.textContent = message;
-    statusEl.classList.remove('is-loading', 'is-ready', 'is-warning', 'is-hidden');
-    statusEl.classList.add(state);
-
-    if (shouldHide) {
-      setTimeout(function () {
-        statusEl.classList.add('is-hidden');
-      }, 1600);
-    }
-  }
-
-  function formatModelError(assetPath, err) {
-    if (window.location.protocol === 'file:') {
-      return 'Model blocked by file:// access. Use a local or deployed HTTP server.';
-    }
-
-    if (err && err.target && typeof err.target.status === 'number' && err.target.status > 0) {
-      return 'Model request failed for ' + assetPath + ' with HTTP ' + err.target.status + '.';
-    }
-
-    if (err && err.message) {
-      return err.message;
-    }
-
-    return 'Model could not load. Check path, host headers, or file size.';
-  }
-
   /* ─────────────────────────────────────────
      INTRO: porthole + sea canvas + zoom-in
   ───────────────────────────────────────── */
@@ -314,8 +279,6 @@
   (function initShip3D() {
     var canvas = document.getElementById('hero-ship-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
-
-    setModelStatus('hero-ship-status', 'is-loading', '3D ship model loading...', false);
     
     try {
       var scene = new THREE.Scene();
@@ -353,37 +316,6 @@
       var modelBaseSize = null;
       var modelBaseCenter = null;
 
-      function createShipFallback() {
-        var fallback = new THREE.Group();
-        var hull = new THREE.Mesh(
-          new THREE.BoxGeometry(2.9, 0.35, 0.9),
-          new THREE.MeshStandardMaterial({ color: 0x0f2747, metalness: 0.35, roughness: 0.55 })
-        );
-        var deck = new THREE.Mesh(
-          new THREE.BoxGeometry(1.5, 0.28, 0.55),
-          new THREE.MeshStandardMaterial({ color: 0xd7e0ea, metalness: 0.15, roughness: 0.8 })
-        );
-        var funnel = new THREE.Mesh(
-          new THREE.BoxGeometry(0.22, 0.38, 0.22),
-          new THREE.MeshStandardMaterial({ color: 0x5da7d1, metalness: 0.1, roughness: 0.85 })
-        );
-
-        hull.position.y = -0.05;
-        deck.position.set(0.15, 0.28, 0);
-        funnel.position.set(0.5, 0.55, 0);
-
-        fallback.add(hull);
-        fallback.add(deck);
-        fallback.add(funnel);
-        fallback.rotation.y = -0.35;
-
-        shipModel = fallback;
-        modelBaseSize = new THREE.Vector3(2.9, 1.0, 0.9);
-        modelBaseCenter = new THREE.Vector3(0.1, 0.2, 0);
-        fitModelToCanvas();
-        shipRoot.add(fallback);
-      }
-
       function fitModelToCanvas() {
         if (!shipModel || !modelBaseSize || !modelBaseCenter) return;
 
@@ -404,7 +336,7 @@
 
       var loader = new THREE.GLTFLoader();
       loader.load(
-        getAssetPath('images/viking_line_ms_viking_grace_2013.glb'),
+        'images/viking_line_ms_viking_grace_2013.glb',
         function (gltf) {
           shipModel = gltf.scene;
 
@@ -417,13 +349,10 @@
           fitModelToCanvas();
 
           shipRoot.add(shipModel);
-          setModelStatus('hero-ship-status', 'is-ready', '3D ship model loaded.', true);
         },
         undefined,
         function (err) {
           console.error('GLB load error:', err);
-          createShipFallback();
-          setModelStatus('hero-ship-status', 'is-warning', formatModelError('images/viking_line_ms_viking_grace_2013.glb', err) + ' Using fallback geometry.', false);
         }
       );
       
@@ -462,8 +391,6 @@
     var canvas = document.getElementById('routes-earth-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
 
-    setModelStatus('earth-model-status', 'is-loading', '3D earth model loading...', false);
-
     /* defer until canvas has real dimensions */
     function getSize() {
       var parent = canvas.parentElement;
@@ -497,29 +424,6 @@
       var modelBaseSize = null;
       var modelBaseCenter = null;
 
-      function createEarthFallback() {
-        if (earthModel) return;
-
-        var geometry = new THREE.SphereGeometry(1.35, 48, 48);
-        var material = new THREE.MeshStandardMaterial({
-          color: 0x2b5f8f,
-          emissive: 0x09243f,
-          metalness: 0.08,
-          roughness: 0.82
-        });
-        var sphere = new THREE.Mesh(geometry, material);
-
-        var glow = new THREE.Mesh(
-          new THREE.SphereGeometry(1.48, 32, 32),
-          new THREE.MeshBasicMaterial({ color: 0x58c2d6, transparent: true, opacity: 0.08 })
-        );
-
-        earthModel = new THREE.Group();
-        earthModel.add(sphere);
-        earthModel.add(glow);
-        earthRoot.add(earthModel);
-      }
-
       function fitEarthModel() {
         if (!earthModel || !modelBaseSize || !modelBaseCenter) return;
 
@@ -540,7 +444,7 @@
 
       var loader = new THREE.GLTFLoader();
       loader.load(
-        getAssetPath('images/earth.glb'),
+        'images/earth.glb',
         function (gltf) {
           earthModel = gltf.scene;
 
@@ -558,13 +462,10 @@
 
           fitEarthModel();
           earthRoot.add(earthModel);
-          setModelStatus('earth-model-status', 'is-ready', '3D earth model loaded.', true);
         },
         undefined,
         function (err) {
           console.error('Earth GLB load error:', err);
-          createEarthFallback();
-          setModelStatus('earth-model-status', 'is-warning', formatModelError('images/earth.glb', err) + ' Using fallback sphere.', false);
         }
       );
 
