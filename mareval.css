@@ -382,6 +382,202 @@ footer { padding:40px 60px;background:var(--deep);
 .fc2 { font-family:var(--fm);font-size:.62rem;letter-spacing:.14em;
   text-transform:uppercase;color:var(--muted); }
 .flinks { display:flex;gap:28px; }
+/* ══════════════════════════════════════════
+   SHIP DEPTH PERSPECTIVE — JESKO STYLE
+   Ship starts small at center-bottom, zooms in
+   huge, then shrinks to fit center. Left/right
+   panels flank it with no overlap.
+══════════════════════════════════════════ */
+#ship-depth {
+  position: relative;
+  height: 500vh;           /* long scroll canvas for the full sequence */
+  background: var(--deep);
+  z-index: 2;
+}
+
+/* ── sticky frame that holds all 3 columns ── */
+.depth-sticky {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* subtle radial vignette for atmosphere */
+.depth-sticky::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 55% 75% at 50% 50%,
+    transparent 40%, rgba(6,13,26,0.65) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── CENTRE: ship image wrapper ── */
+.depth-ship-wrap {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#depth-ship {
+  /*
+    transform-origin: center top — the ship's bow (top of image) stays anchored
+    while it scales, so it appears to rise up from the bottom of screen correctly.
+  */
+  width: auto;
+  height: 88vh;
+  max-height: 88vh;
+  object-fit: contain;
+  transform-origin: center top;
+  will-change: transform, opacity;
+  filter:
+    drop-shadow(0 0 50px rgba(45,196,196,0.3))
+    drop-shadow(0 30px 80px rgba(0,0,0,0.8));
+  opacity: 0;
+  display: block;
+}
+
+/* ── SIDE PANELS ── */
+.depth-panel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);   /* JS overrides transform fully — this is base */
+  z-index: 2;
+  width: 28vw;
+  max-width: 340px;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+.depth-panel--left  { left: 4vw;  text-align: right; }
+.depth-panel--right { right: 4vw; text-align: left;  }
+
+/* eyebrow label */
+.dp-eyebrow {
+  display: block;
+  font-family: var(--fm);
+  font-size: .58rem;
+  letter-spacing: .38em;
+  text-transform: uppercase;
+  color: var(--aqua);
+  margin-bottom: 20px;
+}
+
+/* left panel: big title */
+.dp-title {
+  font-family: var(--fd);
+  font-size: clamp(1.8rem, 2.8vw, 3.2rem);
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--cream);
+  margin-bottom: 22px;
+}
+.dp-title em {
+  font-style: italic;
+  color: var(--aqua);
+}
+
+.dp-desc {
+  font-size: .82rem;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-bottom: 32px;
+  margin-left: auto; /* flush right on left panel */
+}
+
+/* big stat numbers */
+.dp-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+.dp-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 20px 10px 0;
+  border-right: 2px solid rgba(45,196,196,0.18);
+}
+.dp-val {
+  font-family: var(--fd);
+  font-size: 2.2rem;
+  font-weight: 300;
+  color: var(--cream);
+  line-height: 1;
+}
+.dp-key {
+  font-family: var(--fm);
+  font-size: .52rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* right panel: spec table */
+.dp-specs {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 28px;
+}
+.dp-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(45,196,196,0.07);
+}
+.dp-spec-row:first-child { border-top: 1px solid rgba(45,196,196,0.07); }
+.dp-spec-k {
+  font-family: var(--fm);
+  font-size: .58rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dp-spec-v {
+  font-family: var(--fd);
+  font-size: .95rem;
+  font-weight: 400;
+  color: var(--cream);
+  text-align: right;
+}
+
+.dp-cta {
+  display: inline-block;
+  font-family: var(--fs);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: var(--aqua);
+  padding: 13px 28px;
+  text-decoration: none;
+  pointer-events: all;
+  transition: background .25s, transform .2s;
+}
+.dp-cta:hover { background: var(--sand); transform: translateY(-2px); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px) {
+  .depth-panel { display: none; }
+  #depth-ship { height: 80vh; }
+}
+
 .flinks a { font-family:var(--fm);font-size:.62rem;letter-spacing:.14em;
   text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .25s; }
 .flinks a:hover { color:var(--aqua); }

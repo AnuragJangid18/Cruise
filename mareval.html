@@ -7,7 +7,7 @@
 <title>Mareval — Cargo &amp; Cruise</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="mareval.css"/>
+<link rel="stylesheet" href="mareval2.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
@@ -58,6 +58,55 @@
   </ul>
   <a href="#contact" class="nav-cta">Request Charter</a>
 </nav>
+
+<!-- ═══════════ SHIP DEPTH PERSPECTIVE ═══════════ -->
+<section id="ship-depth">
+  <div class="depth-sticky">
+
+    <!-- LEFT PANEL -->
+    <div class="depth-panel depth-panel--left" id="depth-panel-left">
+      <span class="dp-eyebrow">MY Mareval Étoile</span>
+      <h2 class="dp-title">Ultra-<br/>Luxury<br/><em>Expedition</em><br/>Yacht</h2>
+      <p class="dp-desc">38 exclusive suites crafted for the discerning voyager. Every detail engineered for silence, speed, and spectacle across the open ocean.</p>
+      <div class="dp-stats">
+        <div class="dp-stat">
+          <span class="dp-val">76</span>
+          <span class="dp-key">Guests</span>
+        </div>
+        <div class="dp-stat">
+          <span class="dp-val">18.5</span>
+          <span class="dp-key">Knots</span>
+        </div>
+        <div class="dp-stat">
+          <span class="dp-val">38</span>
+          <span class="dp-key">Suites</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHIP IMAGE — fixed centre -->
+    <div class="depth-ship-wrap">
+      <img id="depth-ship" src="images/top.png" alt="MY Mareval Étoile — Top view"/>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="depth-panel depth-panel--right" id="depth-panel-right">
+      <span class="dp-eyebrow">Specifications</span>
+      <div class="dp-specs">
+        <div class="dp-spec-row"><span class="dp-spec-k">Length</span><span class="dp-spec-v">118 m</span></div>
+        <div class="dp-spec-row"><span class="dp-spec-k">Beam</span><span class="dp-spec-v">17.2 m</span></div>
+        <div class="dp-spec-row"><span class="dp-spec-k">Draft</span><span class="dp-spec-v">4.8 m</span></div>
+        <div class="dp-spec-row"><span class="dp-spec-k">Gross Tonnage</span><span class="dp-spec-v">4,800 GT</span></div>
+        <div class="dp-spec-row"><span class="dp-spec-k">Range</span><span class="dp-spec-v">6,000 nm</span></div>
+        <div class="dp-spec-row"><span class="dp-spec-k">Helipad</span><span class="dp-spec-v">Yes</span></div>
+        <div class="dp-spec-row"><span class="dp-spec-k">Pool</span><span class="dp-spec-v">Infinity Deck</span></div>
+        <div class="dp-spec-row"><span class="dp-spec-k">Classification</span><span class="dp-spec-v">Lloyd's ✦ 100A1</span></div>
+      </div>
+      <a href="#contact" class="dp-cta">Request Charter →</a>
+    </div>
+
+  </div>
+</section>
 
 <!-- ═══════════ HERO ═══════════ -->
 <section id="hero">
@@ -245,7 +294,7 @@
   <div class="contact-l reveal">
     <h2>Let's chart<br/><em>your course.</em></h2>
     <p>Whether you're shipping a thousand containers or planning an intimate private cruise, our team is ready — with precision and elegance.</p>
-    <div class="cd"><span class="lbl">Email</span><a href="#">hello@mareval.com</a></div>
+    <div class="cd"><span class="lbl">Email</span><a href="#"><span class="__cf_email__" data-cfemail="83ebe6efefecc3eee2f1e6f5e2efade0ecee">[email&#160;protected]</span></a></div>
     <div class="cd"><span class="lbl">Phone</span><a href="#">+65 6123 4567</a></div>
     <div class="cd"><span class="lbl">HQ</span><span>Marina Bay, Singapore 018980</span></div>
     <div class="cd"><span class="lbl">Hours</span><span>24/7 Operations Center</span></div>
@@ -285,7 +334,8 @@
   </div>
 </footer>
 
-<script>
+<script src="mareval2.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Ocean wave ambient sound control
 const oceanAudio = document.getElementById('bgm-ocean');
 const audioToggle = document.getElementById('audio-toggle');
@@ -328,15 +378,11 @@ if (oceanAudio && audioToggle) {
       audioToggle.style.opacity = '1';
       isPlaying = true;
     }
-    document.removeEventListener('click', startAudio);
-    document.removeEventListener('scroll', startAudio);
-  };
-  
-  document.addEventListener('click', startAudio);
-  document.addEventListener('scroll', startAudio);
-}
+        document.removeEventListener('click', startAudio);
+        document.removeEventListener('scroll', startAudio);
+      };
+    
+      document.addEventListener('click', startAudio);
+      document.addEventListener('scroll', startAudio);
+    }
 </script>
-
-<script src="mareval.js"></script>
-</body>
-</html>

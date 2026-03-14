@@ -519,6 +519,136 @@
     });
   };
 
+  /* ═══════════════════════════════════════════════════
+     SHIP DEPTH — REVISED
+     ───────────────────────────────────────────────────
+     transform-origin: center top  — the bow (top of image)
+     is the scale anchor. translateY moves the whole image
+     so the bow starts just off the bottom of the screen
+     and rises to the vertical center.
+
+     SCROLL SEQUENCE (progress 0 → 1):
+       0.00        : ship invisible, 2.4× scale, bow at bottom of screen
+       0.00 – 0.35 : fades in, rises — bow travels up to resting center
+       0.35 – 0.58 : shrinks to 0.82×, panels slide in
+       0.58 – 0.78 : everything holds
+       0.78 – 1.00 : fade out + drift up
+  ═══════════════════════════════════════════════════ */
+  (function () {
+    var section = document.getElementById('ship-depth');
+    var ship    = document.getElementById('depth-ship');
+    var panelL  = document.getElementById('depth-panel-left');
+    var panelR  = document.getElementById('depth-panel-right');
+    if (!section || !ship) return;
+
+    var SCALE_BIG    = 2.4;
+    var SCALE_FITTED = 0.82;
+
+    /*
+      transform-origin: center top — the bow (top edge of image) is the fixed
+      scale anchor. The flexbox centres the image at rest (scale 1, Y=0), so
+      the bow sits at  vh/2 − (88vh/2) ≈ 6vh from the top of the screen.
+
+      Y_START: bow begins fully below the viewport (off-screen bottom).
+      Y_END:   settled position — a positive value shifts the whole image
+               downward so there is equal breathing room above (nav) and below.
+               At scale 0.82 the image is 88vh × 0.82 ≈ 72vh tall.
+               To centre it in the remaining space (below nav ~70px ≈ 0.09vh):
+               offset = navHeight/2 / vh ≈ 0.045  →  use 0.04 for a natural feel.
+    */
+    var Y_START = 1.0;     /* bow enters from below the viewport — fully off-screen */
+    var Y_END   = 0.08;    /* settled: nudged down so ship sits evenly between nav and bottom */
+
+    var tShipScale = SCALE_BIG, cShipScale = SCALE_BIG;
+    var tShipY     = 1.0,       cShipY     = 1.0;
+    var tShipOp    = 0,         cShipOp    = 0;
+    var tPanelOp   = 0,         cPanelOp   = 0;
+    var tPanelDx   = 60,        cPanelDx   = 60;
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+    function ease(t) { return t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3) / 2; }
+    function remap(p, lo, hi) { return ease(clamp((p - lo) / (hi - lo), 0, 1)); }
+
+    function onScroll() {
+      var scrolled = -section.getBoundingClientRect().top;
+      var total    = section.offsetHeight - window.innerHeight;
+      var p        = clamp(scrolled / total, 0, 1);
+
+      if (p <= 0) {
+        tShipScale = SCALE_BIG; tShipY = Y_START; tShipOp = 0;
+        tPanelOp = 0; tPanelDx = 60;
+        return;
+      }
+
+      /* Phase 1 (0 → 0.35): large ship fades in, bow rises from bottom to center */
+      if (p < 0.35) {
+        tShipOp    = remap(p, 0, 0.18);
+        tShipScale = SCALE_BIG;
+        tShipY     = lerp(Y_START, Y_END, remap(p, 0, 0.35));
+        tPanelOp   = 0;
+        tPanelDx   = 60;
+        return;
+      }
+
+      /* Phase 2 (0.35 → 0.58): shrink to fitted, panels slide in */
+      if (p < 0.58) {
+        tShipOp    = 1;
+        tShipScale = lerp(SCALE_BIG, SCALE_FITTED, remap(p, 0.35, 0.58));
+        tShipY     = Y_END;
+        tPanelOp   = remap(p, 0.42, 0.58);
+        tPanelDx   = lerp(60, 0, remap(p, 0.42, 0.58));
+        return;
+      }
+
+      /* Phase 3 (0.58 → 0.78): hold */
+      if (p < 0.78) {
+        tShipOp = 1; tShipScale = SCALE_FITTED; tShipY = Y_END;
+        tPanelOp = 1; tPanelDx = 0;
+        return;
+      }
+
+      /* Phase 4 (0.78 → 1.0): exit */
+      var t4 = remap(p, 0.78, 1.0);
+      tShipOp    = lerp(1, 0, t4);
+      tShipScale = lerp(SCALE_FITTED, SCALE_FITTED * 0.9, t4);
+      tShipY     = lerp(Y_END, Y_END - 0.06, t4);
+      tPanelOp   = lerp(1, 0, t4);
+      tPanelDx   = lerp(0, 30, t4);
+    }
+
+    function render() {
+      cShipScale += (tShipScale - cShipScale) * 0.10;
+      cShipY     += (tShipY     - cShipY)     * 0.10;
+      cShipOp    += (tShipOp    - cShipOp)    * 0.10;
+      cPanelOp   += (tPanelOp   - cPanelOp)   * 0.08;
+      cPanelDx   += (tPanelDx   - cPanelDx)   * 0.08;
+
+      var vh = window.innerHeight;
+      ship.style.opacity   = cShipOp;
+      ship.style.transform =
+        'translateY(' + (cShipY * vh) + 'px) scale(' + cShipScale + ')';
+
+      if (panelL) {
+        panelL.style.opacity   = cPanelOp;
+        panelL.style.transform = 'translateY(-50%) translateX(' + (-cPanelDx) + 'px)';
+      }
+      if (panelR) {
+        panelR.style.opacity   = cPanelOp;
+        panelR.style.transform = 'translateY(-50%) translateX(' + cPanelDx + 'px)';
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+    render();
+  }());
+
+
+
   /* ─────────────────────────────────────────
      FORM
   ───────────────────────────────────────── */
