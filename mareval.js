@@ -336,7 +336,7 @@
 
       var loader = new THREE.GLTFLoader();
       loader.load(
-        'images/viking_line_ms_viking_grace_2013.glb',
+        '/images/viking_line_ms_viking_grace_2013.glb',
         function (gltf) {
           shipModel = gltf.scene;
 
@@ -444,7 +444,7 @@
 
       var loader = new THREE.GLTFLoader();
       loader.load(
-        'images/earth.glb',
+        '/images/earth.glb',
         function (gltf) {
           earthModel = gltf.scene;
 
