@@ -8,18 +8,19 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="mareval.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/meshopt_decoder.js"></script>
 </head>
 <body class="locked">
 
 <!-- ═══════════ AMBIENT OCEAN SOUND ═══════════ -->
-<audio id="bgm-ocean" loop style="display:none;">
+<audio id="bgm-ocean" loop preload="none" style="display:none;">
   <source src="images/ocean-waves.mp3" type="audio/mpeg">
 </audio>
 
 <!-- ═══════════ SOUND CONTROL BUTTON ═══════════ -->
-<button id="audio-toggle" style="position:fixed;bottom:40px;left:40px;z-index:1000;width:25px;height:25px;border-radius:50%;background:#2dc4c4;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0b1120;transition:all .3s;box-shadow:0 2px 8px rgba(45,196,196,.3);">
+<button id="audio-toggle" aria-label="Toggle ocean sound" style="position:fixed;bottom:40px;left:40px;z-index:1000;width:25px;height:25px;border-radius:50%;background:#2dc4c4;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#0b1120;transition:all .3s;box-shadow:0 2px 8px rgba(45,196,196,.3);">
   🔊
 </button>
 
@@ -137,7 +138,7 @@
 <section id="about">
   <div class="about-vis reveal">
     <div class="about-main">
-      <img style="width:100%;height:auto;border-radius:12px;display:block;" src="images/Ship_sailing_with_water_clouds_delpmaspu_ - Trim.gif" alt="Ship sailing animation"/>
+      <img style="width:100%;height:auto;border-radius:12px;display:block;" src="images/Ship_sailing_with_water_clouds_delpmaspu_ - Trim.gif" alt="Ship sailing animation" loading="lazy" decoding="async"/>
     </div>
     <div class="about-card">
       <span class="big">2018</span><p>Founded in<br/>Singapore</p>
@@ -176,7 +177,7 @@
       <div class="fc-tag">Cargo — Bulk Carrier</div>
       <div class="fc-name">MV Mareval Titan</div>
       <div class="fc-sub">Handymax bulk carrier · Open-hold configuration</div>
-      <img class="fc-icon" src="images/titan-Photoroom.png" alt="MV Mareval Titan"/>
+      <img class="fc-icon" src="images/titan-Photoroom.png" alt="MV Mareval Titan" loading="lazy" decoding="async"/>
       <div class="fc-specs">
         <div><span class="spec-val">58,000</span><span class="spec-key">DWT Capacity</span></div>
         <div><span class="spec-val">14.2</span><span class="spec-key">Knots Speed</span></div>
@@ -189,7 +190,7 @@
       <div class="fc-tag">Cruise — Luxury Yacht</div>
       <div class="fc-name">MY Mareval Étoile</div>
       <div class="fc-sub">Ultra-luxury expedition yacht · 38 suites</div>
-      <img class="fc-icon" src="images/cruise-Photoroom.png" alt="MY Mareval Étoile"/>
+      <img class="fc-icon" src="images/cruise-Photoroom.png" alt="MY Mareval Étoile" loading="lazy" decoding="async"/>
       <div class="fc-specs">
         <div><span class="spec-val">76</span><span class="spec-key">Guests</span></div>
         <div><span class="spec-val">18.5</span><span class="spec-key">Knots Speed</span></div>
@@ -202,7 +203,7 @@
       <div class="fc-tag">Cargo — Container Ship</div>
       <div class="fc-name">MV Mareval Vega</div>
       <div class="fc-sub">Feeder container vessel · 1,200 TEU</div>
-      <img class="fc-icon" src="images/vega-Photoroom.png" alt="MV Mareval Vega"/>
+      <img class="fc-icon" src="images/vega-Photoroom.png" alt="MV Mareval Vega" loading="lazy" decoding="async"/>
       <div class="fc-specs">
         <div><span class="spec-val">1,200</span><span class="spec-key">TEU Capacity</span></div>
         <div><span class="spec-val">16.0</span><span class="spec-key">Knots Speed</span></div>
@@ -334,7 +335,7 @@
   </div>
 </footer>
 
-<script src="mareval.js"></script>
+<script defer src="mareval.js"></script>
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Ocean wave ambient sound control
 const oceanAudio = document.getElementById('bgm-ocean');

@@ -1,10 +1,85 @@
 (function () {
   'use strict';
 
+  var reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var saveData = !!(navigator.connection && navigator.connection.saveData);
+  var lowPerf = !!(
+    reducedMotionQuery.matches ||
+    saveData ||
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4)
+  );
+
   // Mobile detection
   var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
     || window.innerWidth < 768 
     || (window.matchMedia('(pointer:coarse)').matches);
+
+  if (lowPerf) {
+    document.documentElement.classList.add('low-perf');
+  }
+
+  function rafThrottle(callback) {
+    var ticking = false;
+    return function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        callback();
+      });
+    };
+  }
+
+  function scheduleWhenIdle(callback) {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(callback, { timeout: 1200 });
+      return;
+    }
+    setTimeout(callback, 250);
+  }
+
+  function observeVisibility(element, options, onChange) {
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      onChange(true);
+      return { disconnect: function () {} };
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        onChange(entry.isIntersecting || entry.intersectionRatio > 0);
+      });
+    }, options || { threshold: 0 });
+
+    observer.observe(element);
+    return observer;
+  }
+
+  function initOnceWhenNear(element, options, initializer) {
+    var started = false;
+
+    function start() {
+      if (started) return;
+      started = true;
+      initializer();
+    }
+
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      scheduleWhenIdle(start);
+      return;
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting || entry.intersectionRatio > 0) {
+          observer.disconnect();
+          scheduleWhenIdle(start);
+        }
+      });
+    }, options || { rootMargin: '200px 0px', threshold: 0 });
+
+    observer.observe(element);
+  }
 
   /* ─────────────────────────────────────────
      INTRO: porthole + sea canvas + zoom-in
@@ -41,7 +116,7 @@
   }
 
   /* canvas sea */
-  var cW = 220, cH = 220, seaT = 0, seaRaf;
+  var cW = 220, cH = 220, seaT = 0, seaRaf, lastSeaFrame = 0;
 
   function sizeCvs() {
     cW = canvas.offsetWidth  || 220;
@@ -73,6 +148,11 @@
   }
 
   function drawSea(ts) {
+    if (lowPerf && ts - lastSeaFrame < 33) {
+      seaRaf = requestAnimationFrame(drawSea);
+      return;
+    }
+    lastSeaFrame = ts;
     seaT = ts * 0.001;
     ctx.clearRect(0, 0, cW, cH);
 
@@ -278,31 +358,68 @@
     var cur  = document.getElementById('cur');
     var curR = document.getElementById('cur-ring');
     var mx = 0, my = 0, rx = 0, ry = 0;
-    document.addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; });
-    (function animCursor() {
+    var cursorRaf = null;
+    var cursorIdle = null;
+
+    function stopCursorLoop() {
+      if (cursorRaf) {
+        cancelAnimationFrame(cursorRaf);
+        cursorRaf = null;
+      }
+    }
+
+    function animCursor() {
       cur.style.left  = mx + 'px'; cur.style.top  = my + 'px';
       rx += (mx - rx) * 0.12;     ry += (my - ry) * 0.12;
       curR.style.left = rx + 'px'; curR.style.top = ry + 'px';
-      requestAnimationFrame(animCursor);
-    }());
+
+      if (Math.abs(mx - rx) > 0.1 || Math.abs(my - ry) > 0.1) {
+        cursorRaf = requestAnimationFrame(animCursor);
+      } else {
+        stopCursorLoop();
+      }
+    }
+
+    document.addEventListener('mousemove', function (e) {
+      mx = e.clientX;
+      my = e.clientY;
+
+      if (!cursorRaf) {
+        cursorRaf = requestAnimationFrame(animCursor);
+      }
+
+      clearTimeout(cursorIdle);
+      cursorIdle = setTimeout(stopCursorLoop, 1200);
+    }, { passive: true });
   }
 
   /* ─────────────────────────────────────────
      NAVBAR
   ───────────────────────────────────────── */
   var navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', function () {
+  var navScrollTicking = false;
+
+  function syncNavbar() {
+    navScrollTicking = false;
     navbar.classList.toggle('scrolled', window.scrollY > 60);
-  });
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!navScrollTicking) {
+      navScrollTicking = true;
+      requestAnimationFrame(syncNavbar);
+    }
+  }, { passive: true });
+  syncNavbar();
 
   /* ─────────────────────────────────────────
      THREE.JS 3D SHIP
   ───────────────────────────────────────── */
-  (function initShip3D() {
+  function initShip3D() {
     if (isMobile) return; // Skip 3D on mobile
     var canvas = document.getElementById('hero-ship-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
-    
+
     try {
       var scene = new THREE.Scene();
       scene.background = null;
@@ -314,9 +431,14 @@
       camera.position.set(0, 0, 5.2);
       camera.lookAt(0, 0, 0);
       
-      var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+      var renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: !lowPerf,
+        alpha: true,
+        powerPreference: lowPerf ? 'low-power' : 'high-performance'
+      });
       renderer.setSize(w, h);
-      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPerf ? 1.25 : 1.75));
       renderer.setClearColor(0x000000, 0);
       
       /* lights */
@@ -338,6 +460,12 @@
       var shipModel = null;
       var modelBaseSize = null;
       var modelBaseCenter = null;
+      var shipVisible = false;
+      var shipInViewport = false;
+      var shipRaf = null;
+      var animationTime = 0;
+      var lastFrameTime = 0;
+      var shipFrameInterval = lowPerf ? 1000 / 20 : 1000 / 30;
 
       function fitModelToCanvas() {
         if (!shipModel || !modelBaseSize || !modelBaseCenter) return;
@@ -358,8 +486,13 @@
       }
 
       var loader = new THREE.GLTFLoader();
+      if (typeof MeshoptDecoder !== 'undefined') {
+        loader.setMeshoptDecoder(MeshoptDecoder);
+      }
       loader.load(
-        '/images/viking_line_ms_viking_grace_2013.glb',
+        (typeof MeshoptDecoder !== 'undefined')
+          ? '/images/viking_line_ms_viking_grace_2013-optimized.glb'
+          : '/images/viking_line_ms_viking_grace_2013.glb',
         function (gltf) {
           shipModel = gltf.scene;
 
@@ -372,25 +505,61 @@
           fitModelToCanvas();
 
           shipRoot.add(shipModel);
+          shipVisible = true;
+          renderOnce();
+          updateAnimationState();
         },
         undefined,
         function (err) {
           console.error('GLB load error:', err);
         }
       );
-      
-      var animationTime = 0;
+
+      function renderOnce() {
+        renderer.render(scene, camera);
+      }
+
       function animate() {
-        requestAnimationFrame(animate);
+        if (!shipInViewport || document.hidden || !shipVisible) {
+          shipRaf = null;
+          return;
+        }
+
+        shipRaf = requestAnimationFrame(animate);
+        var now = performance.now();
+        if (now - lastFrameTime < shipFrameInterval) {
+          return;
+        }
+        lastFrameTime = now;
         animationTime += 0.015;
 
         shipRoot.position.y = Math.sin(animationTime) * 0.08;
         shipRoot.rotation.z = Math.sin(animationTime * 0.7) * 0.03;
         if (shipModel) shipModel.rotation.y = Math.sin(animationTime * 0.35) * 0.08;
         
-        renderer.render(scene, camera);
+        renderOnce();
       }
-      animate();
+
+      function updateAnimationState() {
+        if (shipInViewport && !document.hidden && shipVisible) {
+          if (!shipRaf) {
+            shipRaf = requestAnimationFrame(animate);
+          }
+        } else if (shipRaf) {
+          cancelAnimationFrame(shipRaf);
+          shipRaf = null;
+        }
+      }
+
+      observeVisibility(canvas, { threshold: 0.1 }, function (visible) {
+        shipInViewport = visible;
+        updateAnimationState();
+        if (visible && shipVisible) {
+          renderOnce();
+        }
+      });
+
+      document.addEventListener('visibilitychange', updateAnimationState);
       
       window.addEventListener('resize', function() {
         var newW = canvas.clientWidth || 520;
@@ -400,17 +569,20 @@
         camera.updateProjectionMatrix();
         camera.lookAt(0, 0, 0);
         fitModelToCanvas();
+        renderOnce();
       });
       
     } catch (e) {
       console.error('Three.js ship error:', e);
     }
-  }());
+  }
+
+  initOnceWhenNear(document.getElementById('hero'), { rootMargin: '300px 0px', threshold: 0 }, initShip3D);
 
   /* ─────────────────────────────────────────
      THREE.JS ROUTES EARTH
   ───────────────────────────────────────── */
-  (function initRoutesEarth3D() {
+  function initRoutesEarth3D() {
     if (isMobile) return; // Skip 3D on mobile
     var canvas = document.getElementById('routes-earth-canvas');
     if (!canvas || typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') return;
@@ -433,9 +605,14 @@
       camera.position.set(0, 0, 6.5);
       camera.lookAt(0, 0, 0);
 
-      var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+      var renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: !lowPerf,
+        alpha: true,
+        powerPreference: lowPerf ? 'low-power' : 'high-performance'
+      });
       renderer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPerf ? 1.1 : 1.5));
       renderer.setClearColor(0x000000, 0);
 
       var ambientLight = new THREE.AmbientLight(0xffffff, 2.2);
@@ -447,6 +624,12 @@
       var earthModel = null;
       var modelBaseSize = null;
       var modelBaseCenter = null;
+      var earthReady = false;
+      var earthInViewport = false;
+      var earthRaf = null;
+      var animationTime = 0;
+      var lastFrameTime = 0;
+      var earthFrameInterval = lowPerf ? 1000 / 16 : 1000 / 24;
 
       function fitEarthModel() {
         if (!earthModel || !modelBaseSize || !modelBaseCenter) return;
@@ -467,8 +650,13 @@
       }
 
       var loader = new THREE.GLTFLoader();
+      if (typeof MeshoptDecoder !== 'undefined') {
+        loader.setMeshoptDecoder(MeshoptDecoder);
+      }
       loader.load(
-        '/images/earth.glb',
+        (typeof MeshoptDecoder !== 'undefined')
+          ? '/images/earth-optimized.glb'
+          : '/images/earth.glb',
         function (gltf) {
           earthModel = gltf.scene;
 
@@ -486,6 +674,9 @@
 
           fitEarthModel();
           earthRoot.add(earthModel);
+          earthReady = true;
+          renderOnce();
+          updateAnimationState();
         },
         undefined,
         function (err) {
@@ -493,17 +684,50 @@
         }
       );
 
-      var animationTime = 0;
+      function renderOnce() {
+        renderer.render(scene, camera);
+      }
+
       function animate() {
-        requestAnimationFrame(animate);
+        if (!earthInViewport || document.hidden || !earthReady) {
+          earthRaf = null;
+          return;
+        }
+
+        earthRaf = requestAnimationFrame(animate);
+        var now = performance.now();
+        if (now - lastFrameTime < earthFrameInterval) {
+          return;
+        }
+        lastFrameTime = now;
         animationTime += 0.008;
 
         earthRoot.rotation.y += 0.003;
         earthRoot.rotation.x = Math.sin(animationTime * 0.3) * 0.12;
 
-        renderer.render(scene, camera);
+        renderOnce();
       }
-      animate();
+
+      function updateAnimationState() {
+        if (earthInViewport && !document.hidden && earthReady) {
+          if (!earthRaf) {
+            earthRaf = requestAnimationFrame(animate);
+          }
+        } else if (earthRaf) {
+          cancelAnimationFrame(earthRaf);
+          earthRaf = null;
+        }
+      }
+
+      observeVisibility(canvas, { threshold: 0.15 }, function (visible) {
+        earthInViewport = visible;
+        updateAnimationState();
+        if (visible && earthReady) {
+          renderOnce();
+        }
+      });
+
+      document.addEventListener('visibilitychange', updateAnimationState);
 
       window.addEventListener('resize', function () {
         var sz3 = getSize();
@@ -512,11 +736,14 @@
         camera.updateProjectionMatrix();
         camera.lookAt(0, 0, 0);
         fitEarthModel();
+        renderOnce();
       });
     } catch (e) {
       console.error('Three.js earth error:', e);
     }
-  }());
+  }
+
+  initOnceWhenNear(document.getElementById('routes'), { rootMargin: '500px 0px', threshold: 0 }, initRoutesEarth3D);
 
   /* ─────────────────────────────────────────
      SCROLL REVEALS
@@ -592,6 +819,8 @@
     var tShipOp    = 0,         cShipOp    = 0;
     var tPanelOp   = 0,         cPanelOp   = 0;
     var tPanelDx   = 60,        cPanelDx   = 60;
+    var depthRaf   = null;
+    var depthVisible = false;
 
     function lerp(a, b, t) { return a + (b - a) * t; }
     function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
@@ -646,6 +875,11 @@
     }
 
     function render() {
+      if (!depthVisible || document.hidden) {
+        depthRaf = null;
+        return;
+      }
+
       cShipScale += (tShipScale - cShipScale) * 0.10;
       cShipY     += (tShipY     - cShipY)     * 0.10;
       cShipOp    += (tShipOp    - cShipOp)    * (isMobile ? 0.15 : 0.10);
@@ -666,13 +900,47 @@
         panelR.style.transform = 'translateY(-50%) translateX(' + cPanelDx + 'px)';
       }
 
-      requestAnimationFrame(render);
+      var stillMoving =
+        Math.abs(tShipScale - cShipScale) > 0.001 ||
+        Math.abs(tShipY - cShipY) > 0.001 ||
+        Math.abs(tShipOp - cShipOp) > 0.001 ||
+        Math.abs(tPanelOp - cPanelOp) > 0.001 ||
+        Math.abs(tPanelDx - cPanelDx) > 0.001;
+
+      if (stillMoving) {
+        depthRaf = requestAnimationFrame(render);
+      } else {
+        depthRaf = null;
+      }
     }
 
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    onScroll();
-    render();
+    function scheduleDepthRender() {
+      if (!depthRaf) {
+        depthRaf = requestAnimationFrame(render);
+      }
+    }
+
+    function syncDepth() {
+      onScroll();
+      scheduleDepthRender();
+    }
+
+    observeVisibility(section, { threshold: 0 }, function (visible) {
+      depthVisible = visible;
+      if (visible) {
+        syncDepth();
+      }
+    });
+
+    window.addEventListener('scroll', rafThrottle(syncDepth), { passive: true });
+    window.addEventListener('resize', syncDepth);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) {
+        syncDepth();
+      }
+    });
+
+    syncDepth();
   }());
 
 
